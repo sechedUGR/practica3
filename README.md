@@ -31,7 +31,7 @@ Una vez hecho el paso anterior, tendrás tu repositorio personal de la práctica
 
 
 ### 4. Modificar el código y guardar los cambios
-Es el momento de empezar a modificar ficheros. Abre el fichero README.md (este fichero) y busca la línea 93. Debes cambiar el enlace que usa el botón para que apunte a tu repositorio y no al de la asignatura.
+Es el momento de empezar a modificar ficheros. Abre el fichero README.md (este fichero), ve al final y añade una línea que diga "Esto lo puse yo." 
 Una vez lo hayas modificado, guarda el fichero, y ejecuta los siguientes comandos en el terminal estando dentro de la carpeta `practica3`:
 
 ```
@@ -86,13 +86,7 @@ Cuando realices cualquier modificación en el código, debes recompilar, así qu
 Si no tienes linux de forma nativa en tu ordenador, puedes crear una máquina virtual en tu ordenador (por ejemplo, usando VirtualBox), e instalar linux en ella. A partir de ahí, puedes trabajar dentro de ella como si tuvieras linux instalado de forma nativa.
 
 
-### Desarrollo remoto con Gitpod
-Si prefieres no instalar nada localmente, puedes usar [Gitpod](https://gitpod.io). Este es un servicio que no depende de los profesores de la asignatura y que no podemos garantizar que funcione perfectamente. Para ello, haz click en el siguiente botón (después de modificarlo para que apunte a tu repositorio y no al de la asignatura) y sigue las instrucciones.
 
-<!-- IMPORTANTE: Debes cambiar en el siguiente enlace TUSUARIO por tu nombre de usuario en github!  -->
-[![Abrir con Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/TUSUARIO/practica3)
-
-Una vez que el servidor remoto esté creado (la primera vez tardará un rato en configurarlo todo, las siguientes veces, debería ser más inmediato), verás un IDE completamente funcional en el navegador; puedes seguir usándolo, o usar VScode localmente si lo tienes instalado(aunque conectado al servidor Gitpod remoto). También, se te debería de haber abierto una nueva ventana en el navegador que te mostrará la interfaz gráfica del programa.
 
 Si no se abre la ventana, copia la url del navegador y anteponle `6080-`. 
 Por ejemplo, si la URL del IDE es `https://USUARIO-REPO-zzzzz.ws-eu34.gitpod.io` abriríamos en una nueva pestaña `https://6080-USUARIO-REPO-zzzzz.ws-eu34.gitpod.io`.
