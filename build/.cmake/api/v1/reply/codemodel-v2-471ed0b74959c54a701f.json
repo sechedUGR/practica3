@@ -1,0 +1,276 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.28.3"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Parchis_Game",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "AIPlayer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-AIPlayer-Debug-3ec4c0a06bfa853fb6fd.json",
+					"name" : "AIPlayer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Board::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Board-Debug-b85585255ccc00ce0a2f.json",
+					"name" : "Board",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "BoardSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-BoardSprite-Debug-88cd02eb5809ae2959ac.json",
+					"name" : "BoardSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "BoardTrap::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-BoardTrap-Debug-b21cd26dfa3c0c1290f9.json",
+					"name" : "BoardTrap",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "BoardTrapSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-BoardTrapSprite-Debug-363f21655e48498819bb.json",
+					"name" : "BoardTrapSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Button::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Button-Debug-7414fe36cfa6e53c9ad8.json",
+					"name" : "Button",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ClickableSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ClickableSprite-Debug-a6efce1370891e0a70c7.json",
+					"name" : "ClickableSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Connection::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Connection-Debug-563ef55c4ddee83b011c.json",
+					"name" : "Connection",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Dice::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Dice-Debug-d59ce2ade34251d8a95e.json",
+					"name" : "Dice",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "DiceSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-DiceSprite-Debug-dfc77509ce10e9d3031d.json",
+					"name" : "DiceSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ExplosionSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ExplosionSprite-Debug-9ae56b061fe748c1d47b.json",
+					"name" : "ExplosionSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GUIPlayer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GUIPlayer-Debug-c9c40a3bbeced7b522e0.json",
+					"name" : "GUIPlayer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GameSelector::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GameSelector-Debug-a510e374b098e4358d09.json",
+					"name" : "GameSelector",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Ninja::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Ninja-Debug-cb4d793c8bebbdf68c65.json",
+					"name" : "Ninja",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Parchis::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Parchis-Debug-385d2f446d7dc4d6dbf4.json",
+					"name" : "Parchis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ParchisGUI::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ParchisGUI-Debug-6a8b462293e8cba5c175.json",
+					"name" : "ParchisGUI",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ParchisGame::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ParchisGame-Debug-e270cf5f78fc12df1aba.json",
+					"name" : "ParchisGame",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Piece::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Piece-Debug-ebb30a687b50aa8ea962.json",
+					"name" : "Piece",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "PieceSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PieceSprite-Debug-118cf5110e03120a51ee.json",
+					"name" : "PieceSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "Player::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Player-Debug-a485df1d44a97dcf3ce2.json",
+					"name" : "Player",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "PowerBar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PowerBar-Debug-3e943591d85aff863d0c.json",
+					"name" : "PowerBar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RemotePlayer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RemotePlayer-Debug-fd8cd3e9638efd4c574f.json",
+					"name" : "RemotePlayer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "SpecialItemSprite::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-SpecialItemSprite-Debug-060c972d3f6aa9d9ce73.json",
+					"name" : "SpecialItemSprite",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "SpriteAnimator::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-SpriteAnimator-Debug-1e2dcd6b19126a1cf0ad.json",
+					"name" : "SpriteAnimator",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "main::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-main-Debug-faec8176e5f8dcde7268.json",
+					"name" : "main",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/rbnuria/IA25/Parchis-2425/build",
+		"source" : "/Users/rbnuria/IA25/Parchis-2425"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}
