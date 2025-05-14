@@ -9,10 +9,8 @@ if [ "$BUILD_DOC" = "ON" ]; then
     sudo apt-get -y install doxygen graphviz
 fi
 
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOC=$BUILD_DOC .. 
-make -j8
-cd ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_DOC=$BUILD_DOC .
 
-./build/ParchisGame
+make -j8
+
+./ParchisGame
