@@ -10,7 +10,7 @@ class Heuristic;
 class NodeCounter
 {
 private:
-    static const int MAX_NODES = 5000000;
+    static const int MAX_NODES = 3500000;
     static const float MAX_TIME; // En segundos.
     // Margen de cortesía que os damos antes de suspenderos
     static const int NODE_MARGIN = 625;
