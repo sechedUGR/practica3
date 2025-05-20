@@ -157,8 +157,7 @@ int main(int argc, char const* argv[]){
    bool playground = false;
 
    // Configuración inicial del juego
-   // BoardConfig config = BoardConfig::GROUPED;
-   BoardConfig config = BoardConfig::DEBUG;
+   BoardConfig config = BoardConfig::GROUPED2;
 
    /* Parse the command line arguments in the following way:
     * --p1 <type=GUI|AI|Remote|Ninja> (id=0) (name=J1)
@@ -548,7 +547,7 @@ int main(int argc, char const* argv[]){
          // Comienzo la conexión al puerto e ip especificadas.
          client->startClientConnection(ip, port);
          // Mando los parámetros del juego
-         client->sendGameParameters(0, name_j1, GROUPED);
+         client->sendGameParameters(0, name_j1, GROUPED2);
          Packet packet;
          MessageKind msg = client->receive(packet);
          if (msg != OK_START_GAME){

@@ -1246,7 +1246,7 @@ void GameSelector::StartGameButton::onClickAction(Window& container){
          gs->game_parameters.port = -1;
       }
 
-      gs->game_parameters.config = GROUPED;
+      gs->game_parameters.config = GROUPED2;
       gs->game_parameters.name_j1 = gs->p1_name.getText();
       gs->game_parameters.name_j2 = gs->p2_name.getText();
       gs->game_parameters.ninja_server = false;
@@ -1269,7 +1269,7 @@ void GameSelector::PlaygroundButton::onClickAction(Window& container){
          gs->game_parameters.port = -1;
       }
 
-      gs->game_parameters.config = GROUPED;
+      gs->game_parameters.config = GROUPED2;
       gs->game_parameters.name_j1 = gs->p1_name.getText();
       gs->game_parameters.name_j2 = gs->p2_name.getText();
       gs->game_parameters.ninja_server = false;
