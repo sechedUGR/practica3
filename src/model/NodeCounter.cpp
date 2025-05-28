@@ -3,7 +3,7 @@
 
 NodeCounter *NodeCounter::instance = nullptr;
 
-const float NodeCounter::MAX_TIME = 60; // En segundos.
+const float NodeCounter::MAX_TIME = 6000; // En segundos.
 const float NodeCounter::TIME_MARGIN = 1; // En segundos.
 
 NodeCounter::NodeCounter()
