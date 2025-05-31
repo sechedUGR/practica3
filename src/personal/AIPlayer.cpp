@@ -174,6 +174,10 @@ float ValoracionTest::getHeuristic(const Parchis& estado, int jugador) const {
 }
 
 // --- HEURÍSTICA AVANZADA ADAPTADA ---
+#include <cstdlib> // arriba, para rand()
+
+#include <cstdlib> // arriba, para rand()
+
 float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const {
     int ganador = estado.getWinner();
     int oponente = (jugador+1) % 2;
@@ -188,14 +192,22 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     float puntuacion_jugador = 0;
     float puntuacion_oponente = 0;
 
+    // Pesos ajustados para evitar overflow y hacerla estable
+    const int PESO_META = 1000;      // Bonificación alta pero segura
+    const int PESO_CASA = -250;      // Penaliza estar en casa
+    const int PESO_DISTANCIA = -10;  // Penaliza distancia
+    const int PESO_COMER = 400;      // Comer es muy bueno
+    const int PESO_SEGURO = 10;      // Pequeño bonus si está seguro
+
     // --- TUS FICHAS ---
     for (color c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
             auto box = estado.getBoard().getPiece(c, j).get_box();
-            if (box.type == goal) puntuacion_jugador += 2000; // META: BONIFICACIÓN ALTÍSIMA
-            else if (box.type == home) puntuacion_jugador -= 500; // CASA: PENALIZA FUERTE
-            puntuacion_jugador += -25 * estado.distanceToGoal(c, j); // Prioriza avanzar SIEMPRE
-            if (estado.isSafePiece(c, j)) puntuacion_jugador += 10;
+            if (box.type == goal) puntuacion_jugador += PESO_META;
+            else if (box.type == home) puntuacion_jugador += PESO_CASA;
+            puntuacion_jugador += PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) puntuacion_jugador += PESO_SEGURO;
+            puntuacion_jugador += (rand() % 3); // Ruido 0-2 para evitar empates
         }
     }
 
@@ -203,18 +215,19 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     for (color c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
             auto box = estado.getBoard().getPiece(c, j).get_box();
-            if (box.type == goal) puntuacion_oponente += 2000;
-            else if (box.type == home) puntuacion_oponente -= 500;
-            puntuacion_oponente += -25 * estado.distanceToGoal(c, j);
-            if (estado.isSafePiece(c, j)) puntuacion_oponente += 10;
+            if (box.type == goal) puntuacion_oponente += PESO_META;
+            else if (box.type == home) puntuacion_oponente += PESO_CASA;
+            puntuacion_oponente += PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) puntuacion_oponente += PESO_SEGURO;
+            puntuacion_oponente += (rand() % 3); // Ruido 0-2 para evitar empates
         }
     }
 
     // --- BONUS: Comer y meta en la siguiente jugada ---
     ParchisBros hijos = estado.getChildren();
     for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
-        if ((*it).isEatingMove()) puntuacion_jugador += 900;
-        if ((*it).isGoalMove()) puntuacion_jugador += 1000;
+        if ((*it).isEatingMove()) puntuacion_jugador += PESO_COMER;
+        if ((*it).isGoalMove()) puntuacion_jugador += PESO_META / 2;
     }
 
     return puntuacion_jugador - puntuacion_oponente;
@@ -225,25 +238,23 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
 float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
     color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const
 {
-    // Si hemos llegado a la profundidad máxima, la partida ha acabado o se alcanza el límite de nodos, evalúa el estado.
     if (profundidad == profundidad_max || estado.gameOver() || NodeCounter::isLimitReached()) {
         return heuristic->evaluate(estado, jugador);
     }
 
     ParchisBros hijos = estado.getChildren();
 
-    // --- Si no hay movimientos posibles, pasa turno ---
+    // Si no hay hijos, pasa turno (movimiento legal)
     if (hijos.begin() == hijos.end()) {
         if (profundidad == 0) {
             c_piece = estado.getCurrentColor();
             id_piece = SKIP_TURN;
-            dice = 0; // Puedes poner 0 o el valor que tu framework use para SKIP
+            dice = 0;
         }
         return heuristic->evaluate(estado, jugador);
     }
 
-    // --- Max (mi turno) ---
-    if (estado.getCurrentPlayerId() == jugador) {
+    if (estado.getCurrentPlayerId() == jugador) { // Max
         float mejor_valor = menosinf;
         for (auto it = hijos.begin(); it != hijos.end(); ++it) {
             color dummy_c; int dummy_id; int dummy_dice;
@@ -261,9 +272,7 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundida
             if (beta <= alpha) break;
         }
         return mejor_valor;
-    }
-    // --- Min (rival) ---
-    else {
+    } else {
         float peor_valor = masinf;
         for (auto it = hijos.begin(); it != hijos.end(); ++it) {
             color dummy_c; int dummy_id; int dummy_dice;
