@@ -225,42 +225,62 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
 float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
     color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const
 {
+    // Si hemos llegado a la profundidad máxima, la partida ha acabado o se alcanza el límite de nodos, evalúa el estado.
     if (profundidad == profundidad_max || estado.gameOver() || NodeCounter::isLimitReached()) {
         return heuristic->evaluate(estado, jugador);
     }
 
-    float valor = 0;
     ParchisBros hijos = estado.getChildren();
 
-    if (estado.getCurrentPlayerId() == jugador) { // Max
+    // --- Si no hay movimientos posibles, pasa turno ---
+    if (hijos.begin() == hijos.end()) {
+        if (profundidad == 0) {
+            c_piece = estado.getCurrentColor();
+            id_piece = SKIP_TURN;
+            dice = 0; // Puedes poner 0 o el valor que tu framework use para SKIP
+        }
+        return heuristic->evaluate(estado, jugador);
+    }
+
+    // --- Max (mi turno) ---
+    if (estado.getCurrentPlayerId() == jugador) {
+        float mejor_valor = menosinf;
         for (auto it = hijos.begin(); it != hijos.end(); ++it) {
-            color c_dummy; int id_dummy; int dice_dummy;
-            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max, c_dummy, id_dummy, dice_dummy, alpha, beta, heuristic);
-            if (child_val > alpha) {
-                alpha = child_val;
+            color dummy_c; int dummy_id; int dummy_dice;
+            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max,
+                                            dummy_c, dummy_id, dummy_dice, alpha, beta, heuristic);
+            if (child_val > mejor_valor) {
+                mejor_valor = child_val;
                 if (profundidad == 0) {
                     c_piece = it.getMovedColor();
                     id_piece = it.getMovedPieceId();
                     dice = it.getMovedDiceValue();
                 }
             }
+            alpha = std::max(alpha, mejor_valor);
             if (beta <= alpha) break;
         }
-        return alpha;
-    } else { // Min
+        return mejor_valor;
+    }
+    // --- Min (rival) ---
+    else {
+        float peor_valor = masinf;
         for (auto it = hijos.begin(); it != hijos.end(); ++it) {
-            color c_dummy; int id_dummy; int dice_dummy;
-            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max, c_dummy, id_dummy, dice_dummy, alpha, beta, heuristic);
-            if (child_val < beta) {
-                beta = child_val;
+            color dummy_c; int dummy_id; int dummy_dice;
+            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max,
+                                            dummy_c, dummy_id, dummy_dice, alpha, beta, heuristic);
+            if (child_val < peor_valor) {
+                peor_valor = child_val;
                 if (profundidad == 0) {
                     c_piece = it.getMovedColor();
                     id_piece = it.getMovedPieceId();
                     dice = it.getMovedDiceValue();
                 }
             }
+            beta = std::min(beta, peor_valor);
             if (beta <= alpha) break;
         }
-        return beta;
+        return peor_valor;
     }
 }
+
