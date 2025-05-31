@@ -144,25 +144,25 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
     if (ganador == oponente) return pierde;
 
     float val = 0;
-    const int PESO_META = 1000;
-    const int PESO_CASA = -500;
+    const int PESO_META = 10000;
+    const int PESO_CASA = -4000;
     const int PESO_SEGURO = 10;
-    const int PESO_DISTANCIA = -5;
-    const int PESO_COMER = 300;
-    const int PESO_BARRERA = 30;
+    const int PESO_DISTANCIA = -20;
+    const int PESO_COMER = 5000;
+    const int PESO_MUERTE = -3000;
 
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    // --- Mis fichas ---
+    // --- Tus fichas ---
     for (auto c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
             auto box = estado.getBoard().getPiece(c, j).get_box();
-            if (box.type == goal) val += PESO_META;
-            else if (box.type == home) val += PESO_CASA;
-            val += PESO_DISTANCIA * estado.distanceToGoal(c, j);
-            if (estado.isSafePiece(c, j)) val += PESO_SEGURO;
-
+            if (box.type == goal) val += PESO_META;                // META: PRIORIDAD MÁXIMA
+            else if (box.type == home) val += PESO_CASA;           // CASA: PENALIZA FUERTE
+            else val += PESO_DISTANCIA * estado.distanceToGoal(c, j); // AVANZA SIEMPRE
+            if (estado.isSafePiece(c, j)) val += PESO_SEGURO;      // Un pequeño bonus si está a salvo
+            if (estado.getBoard().getPiece(c, j).get_box().type == kill) val += PESO_MUERTE; // Si me matan, penaliza fuerte
         }
     }
 
@@ -170,23 +170,19 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
     for (auto c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
             auto box = estado.getBoard().getPiece(c, j).get_box();
-            if (box.type == goal) val -= PESO_META;
-            else if (box.type == home) val -= PESO_CASA;
-            val -= PESO_DISTANCIA * estado.distanceToGoal(c, j);
-            if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;
-
+            if (box.type == goal) val -= PESO_META;                // Penaliza si el rival llega a meta
+            else if (box.type == home) val -= PESO_CASA;           // Bonus si el rival está en casa
+            else val -= PESO_DISTANCIA * estado.distanceToGoal(c, j); // Penaliza que el rival avance
+            if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;      // Pequeño castigo si el rival está seguro
+            if (estado.getBoard().getPiece(c, j).get_box().type == kill) val -= PESO_MUERTE; // Bonus si matan rival
         }
-    }//a
+    }
 
-    // --- BONUS: Si puedo comer o llegar a meta en la siguiente jugada (usando hijos) ---
+    // --- BONUS: Comer y llegar a meta en la siguiente jugada ---
     ParchisBros hijos = estado.getChildren();
     for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
-        if ((*it).isEatingMove()) {
-            val += PESO_COMER;
-        }
-        if ((*it).isGoalMove()) {
-            val += PESO_META/2;
-        }
+        if ((*it).isEatingMove()) val += PESO_COMER;
+        if ((*it).isGoalMove()) val += PESO_META/2;
     }
     return val;
 }
