@@ -176,7 +176,7 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
             if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;
 
         }
-    }
+    }//a
 
     // --- BONUS: Si puedo comer o llegar a meta en la siguiente jugada (usando hijos) ---
     ParchisBros hijos = estado.getChildren();
