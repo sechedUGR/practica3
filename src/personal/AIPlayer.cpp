@@ -192,7 +192,6 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
 
     int score_jugador = 0, score_oponente = 0;
 
-    // --- JUGADOR ---
     for (color c : my_colors) {
         int en_casa = 0;
         for (int j = 0; j < num_pieces; j++) {
@@ -200,21 +199,20 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
             auto box = pieza.get_box();
             int dist = estado.distanceToGoal(c, j);
 
-            if (box.type == home) {
+            if (box.type == goal) score_jugador += 2000;
+            else if (box.type == home) {
                 score_jugador -= 250;
                 en_casa++;
-            } else if (box.type == goal) {
-                score_jugador += 2000;
             } else {
-                if (estado.isSafePiece(c, j)) score_jugador += 60;
-                score_jugador += pow(74 - dist, 1.25);
-                if (dist <= 6) score_jugador += 40;
+                score_jugador += pow(74 - dist, 1.2);
+                if (estado.isSafePiece(c, j)) score_jugador += 50;
+                if (dist <= 6) score_jugador += 30;
+                if (dist >= 65) score_jugador += 20; // bonifica salir de casa
             }
         }
-        if (en_casa == 2) score_jugador -= 300; // castigo doble por estar encerrado
+        if (en_casa == 2) score_jugador -= 400;
     }
 
-    // --- OPONENTE ---
     for (color c : op_colors) {
         int en_casa = 0;
         for (int j = 0; j < num_pieces; j++) {
@@ -222,22 +220,21 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
             auto box = pieza.get_box();
             int dist = estado.distanceToGoal(c, j);
 
-            if (box.type == home) {
+            if (box.type == goal) score_oponente += 2000;
+            else if (box.type == home) {
                 score_oponente -= 250;
                 en_casa++;
-            } else if (box.type == goal) {
-                score_oponente += 2000;
             } else {
-                if (estado.isSafePiece(c, j)) score_oponente += 60;
-                score_oponente += pow(74 - dist, 1.25);
-                if (dist <= 6) score_oponente += 40;
+                score_oponente += pow(74 - dist, 1.2);
+                if (estado.isSafePiece(c, j)) score_oponente += 50;
+                if (dist <= 6) score_oponente += 30;
+                if (dist >= 65) score_oponente += 20;
             }
         }
-        if (en_casa == 2) score_oponente -= 300;
+        if (en_casa == 2) score_oponente -= 400;
     }
 
-    // Bonificaciones por acciones
-    if (estado.isEatingMove()) score_jugador += 350;
+    if (estado.isEatingMove()) score_jugador += 400;
     if (estado.isGoalMove()) score_jugador += 500;
 
     return score_jugador - score_oponente;
