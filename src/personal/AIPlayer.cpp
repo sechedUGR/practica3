@@ -189,66 +189,43 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    int puntuacion_jugador = 0;
-    color ganador_yo = none;
-    int maximo = 0;
+    float val = 0;
+    const int PESO_META = 1000;
+    const int PESO_CASA = -400;
+    const int PESO_DISTANCIA = -15;
+    const int PESO_COMER = 300;
+    const int PESO_SEGURO = 10;
 
-    // Jugador
-    for (int i = 0; i < my_colors.size(); i++) {
-        color c = my_colors[i];
-        if (estado.piecesAtGoal(c) > maximo) {
-            ganador_yo = c;
-            maximo = estado.piecesAtGoal(c);
-        }
+    // --- Tus fichas ---
+    for (auto c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_yo == c)
-                    puntuacion_jugador -= 80;
-                else
-                    puntuacion_jugador -= 50;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_jugador += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_jugador += 50;
-            }
-            if (ganador_yo == c)
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) val += PESO_META;
+            else if (box.type == home) val += PESO_CASA;
+            val += PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) val += PESO_SEGURO;
         }
     }
 
-    // Oponente
-    int puntuacion_oponente = 0;
-    color ganador_op = none;
-    int maximo_op = 0;
-    for (int i = 0; i < op_colors.size(); i++) {
-        color c = op_colors[i];
-        if (estado.piecesAtGoal(c) > maximo_op) {
-            ganador_op = c;
-            maximo_op = estado.piecesAtGoal(c);
-        }
+    // --- Fichas rivales ---
+    for (auto c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_op == c)
-                    puntuacion_oponente -= 80;
-                else
-                    puntuacion_oponente -= 50;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_oponente += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_oponente += 50;
-            }
-            if (ganador_op == c)
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) val -= PESO_META;
+            else if (box.type == home) val -= PESO_CASA;
+            val -= PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;
         }
     }
 
-    return puntuacion_jugador - puntuacion_oponente;
+    // --- BONUS: Comer y meta en la siguiente jugada ---
+    ParchisBros hijos = estado.getChildren();
+    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
+        if ((*it).isEatingMove()) val += PESO_COMER;
+        if ((*it).isGoalMove()) val += PESO_META / 2;
+    }
+
+    return val;
 }
 
 // --- PODA ALFA-BETA ADAPTADA ---
