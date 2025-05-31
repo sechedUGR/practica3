@@ -92,22 +92,58 @@ void AIPlayer::thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice)
 
 void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice) const {
     ParchisBros hijos = actual->getChildren();
-    bool me_quedo_con_esta_accion = false;
 
-    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end() && !me_quedo_con_esta_accion; ++it) {
-        Parchis siguiente_hijo = *it;
-        if (siguiente_hijo.isEatingMove() || siguiente_hijo.isGoalMove() ||
-            (siguiente_hijo.gameOver() && siguiente_hijo.getWinner() == this->jugador)) {
-            me_quedo_con_esta_accion = true;
-            c_piece = it.getMovedColor();
-            id_piece = it.getMovedPieceId();
-            dice = it.getMovedDiceValue();
+    float mejor_valor = -1e9;
+    color mejor_c = none;
+    int mejor_id = -1;
+    int mejor_dado = -1;
+
+    const int PESO_META = 2000;
+    const int PESO_CASA = -500;
+    const int PESO_DISTANCIA = -25;
+    const int PESO_COMER = 900;
+    const int BONUS_POR_SEGURO = 10;
+
+    int jugador = actual->getCurrentPlayerId();
+
+    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
+        Parchis hijo = *it;
+        float valor = 0;
+
+        // Para cada color y ficha mía, suma valores
+        std::vector<color> my_colors = hijo.getPlayerColors(jugador);
+        for (color c : my_colors) {
+            for (int j = 0; j < num_pieces; j++) {
+                auto box = hijo.getBoard().getPiece(c, j).get_box();
+                if (box.type == goal) valor += PESO_META;
+                else if (box.type == home) valor += PESO_CASA;
+                valor += PESO_DISTANCIA * hijo.distanceToGoal(c, j);
+                if (hijo.isSafePiece(c, j)) valor += BONUS_POR_SEGURO;
+            }
+        }
+
+        // Bonus si comes
+        if (hijo.isEatingMove()) valor += PESO_COMER;
+        // Bonus si haces meta
+        if (hijo.isGoalMove()) valor += PESO_META / 2;
+
+        if (valor > mejor_valor) {
+            mejor_valor = valor;
+            mejor_c = it.getMovedColor();
+            mejor_id = it.getMovedPieceId();
+            mejor_dado = it.getMovedDiceValue();
         }
     }
-    if (!me_quedo_con_esta_accion) {
+
+    if (mejor_id != -1) {
+        c_piece = mejor_c;
+        id_piece = mejor_id;
+        dice = mejor_dado;
+    } else {
         thinkFichaMasAdelantada(c_piece, id_piece, dice);
     }
 }
+
 
 // --- HEURÍSTICA BÁSICA (la del tutorial) ---
 float ValoracionTest::getHeuristic(const Parchis& estado, int jugador) const {
