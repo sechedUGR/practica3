@@ -174,7 +174,7 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
             else if (box.type == home) val -= PESO_CASA;
             val -= PESO_DISTANCIA * estado.distanceToGoal(c, j);
             if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;
-            if (estado.getBoard().getPiece(c, j).get_box().barrier) val -= PESO_BARRERA;
+
         }
     }
 
