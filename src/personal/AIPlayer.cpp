@@ -185,67 +185,41 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    int puntuacion_jugador = 0;
-    color ganador_yo = none;
-    int maximo = 0;
+    float puntuacion_jugador = 0;
+    float puntuacion_oponente = 0;
 
-    // Jugador
-    for (int i = 0; i < my_colors.size(); i++) {
-        color c = my_colors[i];
-        if (estado.piecesAtGoal(c) > maximo) {
-            ganador_yo = c;
-            maximo = estado.piecesAtGoal(c);
-        }
+    // --- TUS FICHAS ---
+    for (color c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_yo == c)
-                    puntuacion_jugador -= 80;
-                else
-                    puntuacion_jugador -= 50;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_jugador += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_jugador += 50;
-            }
-            if (ganador_yo == c)
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) puntuacion_jugador += 2000; // META: BONIFICACIÓN ALTÍSIMA
+            else if (box.type == home) puntuacion_jugador -= 500; // CASA: PENALIZA FUERTE
+            puntuacion_jugador += -25 * estado.distanceToGoal(c, j); // Prioriza avanzar SIEMPRE
+            if (estado.isSafePiece(c, j)) puntuacion_jugador += 10;
         }
     }
 
-    // Oponente
-    int puntuacion_oponente = 0;
-    color ganador_op = none;
-    int maximo_op = 0;
-    for (int i = 0; i < op_colors.size(); i++) {
-        color c = op_colors[i];
-        if (estado.piecesAtGoal(c) > maximo_op) {
-            ganador_op = c;
-            maximo_op = estado.piecesAtGoal(c);
-        }
+    // --- FICHAS DEL RIVAL ---
+    for (color c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_op == c)
-                    puntuacion_oponente -= 80;
-                else
-                    puntuacion_oponente -= 50;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_oponente += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_oponente += 50;
-            }
-            if (ganador_op == c)
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) puntuacion_oponente += 2000;
+            else if (box.type == home) puntuacion_oponente -= 500;
+            puntuacion_oponente += -25 * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) puntuacion_oponente += 10;
         }
+    }
+
+    // --- BONUS: Comer y meta en la siguiente jugada ---
+    ParchisBros hijos = estado.getChildren();
+    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
+        if ((*it).isEatingMove()) puntuacion_jugador += 900;
+        if ((*it).isGoalMove()) puntuacion_jugador += 1000;
     }
 
     return puntuacion_jugador - puntuacion_oponente;
 }
+
 
 // --- PODA ALFA-BETA ADAPTADA ---
 float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
