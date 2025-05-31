@@ -7,7 +7,8 @@
 const float masinf = 9999999999.0, menosinf = -9999999999.0;
 const float gana = masinf / 10.f, pierde = menosinf / 10.f;
 const int num_pieces = 2;
-const int PROFUNDIDAD_ALFABETA = 8; // Puedes variar este número
+// PROFUNDIDAD máxima sin superar límite de nodos (ajusta a 8 si va justo)
+const int PROFUNDIDAD_ALFABETA = 9;
 
 bool AIPlayer::move() {
     color c_piece; int id_piece; int dice;
@@ -107,7 +108,7 @@ void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice) const 
     }
 }
 
-// --- HEURÍSTICA BÁSICA (la del tutorial) ---
+// --- HEURÍSTICA BÁSICA ---
 float ValoracionTest::getHeuristic(const Parchis& estado, int jugador) const {
     int ganador = estado.getWinner();
     int oponente = (jugador + 1) % 2;
@@ -135,29 +136,58 @@ float ValoracionTest::getHeuristic(const Parchis& estado, int jugador) const {
     return puntuacion_jugador - puntuacion_oponente;
 }
 
-// --- HEURÍSTICA AVANZADA (puedes tunear los pesos si quieres) ---
+// --- HEURÍSTICA AVANZADA (AQUÍ ESTÁ LA CLAVE PARA GANAR NINJAS) ---
 float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const {
     int ganador = estado.getWinner();
     int oponente = (jugador + 1) % 2;
     if (ganador == jugador) return gana;
     if (ganador == oponente) return pierde;
 
+    float val = 0;
+    const int PESO_META = 1000;
+    const int PESO_CASA = -500;
+    const int PESO_SEGURO = 10;
+    const int PESO_DISTANCIA = -5;
+    const int PESO_COMER = 300;
+    const int PESO_BARRERA = 30;
+
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    float val = 0;
-    for (auto c : my_colors)
+    // --- Mis fichas ---
+    for (auto c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == goal) val += 100;
-            val -= estado.distanceToGoal(c, j) * 2;
-            if (estado.isSafePiece(c, j)) val += 3;
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) val += PESO_META;
+            else if (box.type == home) val += PESO_CASA;
+            val += PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) val += PESO_SEGURO;
+            if (estado.getBoard().getPiece(c, j).get_box().barrier) val += PESO_BARRERA;
         }
-    for (auto c : op_colors)
+    }
+
+    // --- Fichas rivales ---
+    for (auto c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == goal) val -= 100;
-            val += estado.distanceToGoal(c, j) * 2;
-            if (estado.isSafePiece(c, j)) val -= 3;
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) val -= PESO_META;
+            else if (box.type == home) val -= PESO_CASA;
+            val -= PESO_DISTANCIA * estado.distanceToGoal(c, j);
+            if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;
+            if (estado.getBoard().getPiece(c, j).get_box().barrier) val -= PESO_BARRERA;
         }
+    }
+
+    // --- BONUS: Si puedo comer o llegar a meta en la siguiente jugada (usando hijos) ---
+    ParchisBros hijos = estado.getChildren();
+    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
+        if ((*it).isEatingMove()) {
+            val += PESO_COMER;
+        }
+        if ((*it).isGoalMove()) {
+            val += PESO_META/2;
+        }
+    }
     return val;
 }
 
@@ -264,3 +294,4 @@ float AIPlayer::Poda_AlfaBeta_Ordenada(const Parchis &actual, int jugador, int p
         return valor;
     }
 }
+

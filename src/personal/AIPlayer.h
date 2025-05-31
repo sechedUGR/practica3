@@ -40,8 +40,6 @@ public:
 
    float Poda_AlfaBeta_Ordenada(const Parchis &actual, int jugador, int profundidad, int profundidad_max,
        color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const;
-
-   // Puedes añadir más aquí si implementas poda probabilística o quietud
 };
 
 #endif
