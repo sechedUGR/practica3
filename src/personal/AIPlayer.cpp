@@ -190,47 +190,59 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    int score_jugador = 0;
-    int score_oponente = 0;
+    int score_jugador = 0, score_oponente = 0;
 
+    // --- JUGADOR ---
     for (color c : my_colors) {
+        int en_casa = 0;
         for (int j = 0; j < num_pieces; j++) {
-            auto piece = estado.getBoard().getPiece(c, j);
-            auto box = piece.get_box();
+            auto pieza = estado.getBoard().getPiece(c, j);
+            auto box = pieza.get_box();
             int dist = estado.distanceToGoal(c, j);
 
-            if (box.type == goal) score_jugador += 2000;
-            else if (box.type == home) score_jugador -= 200;
-            else {
-                score_jugador += (estado.isSafePiece(c, j) ? 50 : 0);
-                score_jugador += pow(74 - dist, 1.3);
+            if (box.type == home) {
+                score_jugador -= 250;
+                en_casa++;
+            } else if (box.type == goal) {
+                score_jugador += 2000;
+            } else {
+                if (estado.isSafePiece(c, j)) score_jugador += 60;
+                score_jugador += pow(74 - dist, 1.25);
                 if (dist <= 6) score_jugador += 40;
             }
         }
+        if (en_casa == 2) score_jugador -= 300; // castigo doble por estar encerrado
     }
 
+    // --- OPONENTE ---
     for (color c : op_colors) {
+        int en_casa = 0;
         for (int j = 0; j < num_pieces; j++) {
-            auto piece = estado.getBoard().getPiece(c, j);
-            auto box = piece.get_box();
+            auto pieza = estado.getBoard().getPiece(c, j);
+            auto box = pieza.get_box();
             int dist = estado.distanceToGoal(c, j);
 
-            if (box.type == goal) score_oponente += 2000;
-            else if (box.type == home) score_oponente -= 200;
-            else {
-                score_oponente += (estado.isSafePiece(c, j) ? 50 : 0);
-                score_oponente += pow(74 - dist, 1.3);
+            if (box.type == home) {
+                score_oponente -= 250;
+                en_casa++;
+            } else if (box.type == goal) {
+                score_oponente += 2000;
+            } else {
+                if (estado.isSafePiece(c, j)) score_oponente += 60;
+                score_oponente += pow(74 - dist, 1.25);
                 if (dist <= 6) score_oponente += 40;
             }
         }
+        if (en_casa == 2) score_oponente -= 300;
     }
 
-    // Bonificaciones por acción directa
-    if (estado.isEatingMove()) score_jugador += 300;
+    // Bonificaciones por acciones
+    if (estado.isEatingMove()) score_jugador += 350;
     if (estado.isGoalMove()) score_jugador += 500;
 
     return score_jugador - score_oponente;
 }
+
 
 // --- PODA ALFA-BETA ADAPTADA ---
 float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
