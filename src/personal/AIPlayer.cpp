@@ -203,19 +203,21 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
         for (int j = 0; j < num_pieces; j++) {
             if (estado.getBoard().getPiece(c, j).get_box().type == home) {
                 if (ganador_yo == c)
-                    puntuacion_jugador -= 80;
+                    puntuacion_jugador -= 200; // penaliza fuerte estar en casa
                 else
-                    puntuacion_jugador -= 50;
+                    puntuacion_jugador -= 150;
             }
             if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_jugador += 50;
+                puntuacion_jugador += 80;
                 if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_jugador += 50;
+                    puntuacion_jugador += 200; // meta
             }
             if (ganador_yo == c)
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.5);
+                puntuacion_jugador += 3 * pow(74 - estado.distanceToGoal(c, j), 1.5);
             else
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.2);
+                puntuacion_jugador += 2 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+
+            puntuacion_jugador += (rand() % 3); // ruido para evitar bucles
         }
     }
 
@@ -232,24 +234,34 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
         for (int j = 0; j < num_pieces; j++) {
             if (estado.getBoard().getPiece(c, j).get_box().type == home) {
                 if (ganador_op == c)
-                    puntuacion_oponente -= 80;
+                    puntuacion_oponente -= 200;
                 else
-                    puntuacion_oponente -= 50;
+                    puntuacion_oponente -= 150;
             }
             if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_oponente += 50;
+                puntuacion_oponente += 80;
                 if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_oponente += 50;
+                    puntuacion_oponente += 200;
             }
             if (ganador_op == c)
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.5);
+                puntuacion_oponente += 3 * pow(74 - estado.distanceToGoal(c, j), 1.5);
             else
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.2);
+                puntuacion_oponente += 2 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+
+            puntuacion_oponente += (rand() % 3); // ruido
         }
+    }
+
+    // --- BONUS: Comer y meta en la siguiente jugada ---
+    ParchisBros hijos = estado.getChildren();
+    for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
+        if ((*it).isEatingMove()) puntuacion_jugador += 300;
+        if ((*it).isGoalMove()) puntuacion_jugador += 400;
     }
 
     return puntuacion_jugador - puntuacion_oponente;
 }
+
 
 // --- PODA ALFA-BETA ADAPTADA ---
 float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
