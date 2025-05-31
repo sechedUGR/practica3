@@ -180,7 +180,8 @@ float ValoracionTest::getHeuristic(const Parchis& estado, int jugador) const {
 
 float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const {
     int ganador = estado.getWinner();
-    int oponente = (jugador+1) % 2;
+    int oponente = (jugador + 1) % 2;
+
     if (ganador == jugador)
         return gana;
     else if (ganador == oponente)
@@ -189,66 +190,46 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    int puntuacion_jugador = 0;
-    color ganador_yo = none;
-    int maximo = 0;
+    int score_jugador = 0;
+    int score_oponente = 0;
 
-    // Jugador
-    for (int i = 0; i < my_colors.size(); i++) {
-        color c = my_colors[i];
-        if (estado.piecesAtGoal(c) > maximo) {
-            ganador_yo = c;
-            maximo = estado.piecesAtGoal(c);
-        }
+    for (color c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_yo == c)
-                    puntuacion_jugador -= 80;
-                else
-                    puntuacion_jugador -= 50;
+            auto piece = estado.getBoard().getPiece(c, j);
+            auto box = piece.get_box();
+            int dist = estado.distanceToGoal(c, j);
+
+            if (box.type == goal) score_jugador += 2000;
+            else if (box.type == home) score_jugador -= 200;
+            else {
+                score_jugador += (estado.isSafePiece(c, j) ? 50 : 0);
+                score_jugador += pow(74 - dist, 1.3);
+                if (dist <= 6) score_jugador += 40;
             }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_jugador += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_jugador += 50;
-            }
-            if (ganador_yo == c)
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_jugador += pow(74 - estado.distanceToGoal(c, j), 1.2);
         }
     }
 
-    // Oponente
-    int puntuacion_oponente = 0;
-    color ganador_op = none;
-    int maximo_op = 0;
-    for (int i = 0; i < op_colors.size(); i++) {
-        color c = op_colors[i];
-        if (estado.piecesAtGoal(c) > maximo_op) {
-            ganador_op = c;
-            maximo_op = estado.piecesAtGoal(c);
-        }
+    for (color c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_op == c)
-                    puntuacion_oponente -= 80;
-                else
-                    puntuacion_oponente -= 50;
+            auto piece = estado.getBoard().getPiece(c, j);
+            auto box = piece.get_box();
+            int dist = estado.distanceToGoal(c, j);
+
+            if (box.type == goal) score_oponente += 2000;
+            else if (box.type == home) score_oponente -= 200;
+            else {
+                score_oponente += (estado.isSafePiece(c, j) ? 50 : 0);
+                score_oponente += pow(74 - dist, 1.3);
+                if (dist <= 6) score_oponente += 40;
             }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_oponente += 50;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_oponente += 50;
-            }
-            if (ganador_op == c)
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_oponente += pow(74 - estado.distanceToGoal(c, j), 1.2);
         }
     }
 
-    return puntuacion_jugador - puntuacion_oponente;
+    // Bonificaciones por acción directa
+    if (estado.isEatingMove()) score_jugador += 300;
+    if (estado.isGoalMove()) score_jugador += 500;
+
+    return score_jugador - score_oponente;
 }
 
 // --- PODA ALFA-BETA ADAPTADA ---
