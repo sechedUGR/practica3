@@ -189,70 +189,36 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador) const
     std::vector<color> my_colors = estado.getPlayerColors(jugador);
     std::vector<color> op_colors = estado.getPlayerColors(oponente);
 
-    int puntuacion_jugador = 0;
-    color ganador_yo = none;
-    int maximo = 0;
+    float puntuacion_jugador = 0;
+    float puntuacion_oponente = 0;
 
-    // Jugador
-    for (int i = 0; i < my_colors.size(); i++) {
-        color c = my_colors[i];
-        if (estado.piecesAtGoal(c) > maximo) {
-            ganador_yo = c;
-            maximo = estado.piecesAtGoal(c);
-        }
+    // --- Tus fichas ---
+    for (color c : my_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_yo == c)
-                    puntuacion_jugador -= 400; // penaliza fuerte estar en casa
-                else
-                    puntuacion_jugador -= 200;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_jugador += 120;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_jugador += 300; // meta
-            }
-            if (ganador_yo == c)
-                puntuacion_jugador += 4 * pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_jugador += 3 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) puntuacion_jugador += 800;       // Meta, mucho bonus
+            else if (box.type == home) puntuacion_jugador -= 250;  // Casa, penaliza
+            puntuacion_jugador += 2 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+            puntuacion_jugador += (rand() % 3); // Antibucle
         }
     }
 
-    // Oponente
-    int puntuacion_oponente = 0;
-    color ganador_op = none;
-    int maximo_op = 0;
-    for (int i = 0; i < op_colors.size(); i++) {
-        color c = op_colors[i];
-        if (estado.piecesAtGoal(c) > maximo_op) {
-            ganador_op = c;
-            maximo_op = estado.piecesAtGoal(c);
-        }
+    // --- Fichas del rival ---
+    for (color c : op_colors) {
         for (int j = 0; j < num_pieces; j++) {
-            if (estado.getBoard().getPiece(c, j).get_box().type == home) {
-                if (ganador_op == c)
-                    puntuacion_oponente -= 400;
-                else
-                    puntuacion_oponente -= 200;
-            }
-            if (estado.distanceToGoal(c, j) <= 8) {
-                puntuacion_oponente += 120;
-                if (estado.distanceToGoal(c, j) == 0)
-                    puntuacion_oponente += 300;
-            }
-            if (ganador_op == c)
-                puntuacion_oponente += 4 * pow(74 - estado.distanceToGoal(c, j), 1.5);
-            else
-                puntuacion_oponente += 3 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+            auto box = estado.getBoard().getPiece(c, j).get_box();
+            if (box.type == goal) puntuacion_oponente += 800;
+            else if (box.type == home) puntuacion_oponente -= 250;
+            puntuacion_oponente += 2 * pow(74 - estado.distanceToGoal(c, j), 1.2);
+            puntuacion_oponente += (rand() % 3); // Antibucle
         }
     }
 
-    // --- BONUS: Comer y meta en la siguiente jugada ---
+    // --- Bonus por comer o meta en hijos ---
     ParchisBros hijos = estado.getChildren();
     for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
-        if ((*it).isEatingMove()) puntuacion_jugador += 500;
-        if ((*it).isGoalMove()) puntuacion_jugador += 600;
+        if ((*it).isEatingMove()) puntuacion_jugador += 250;
+        if ((*it).isGoalMove()) puntuacion_jugador += 400;
     }
 
     return puntuacion_jugador - puntuacion_oponente;
