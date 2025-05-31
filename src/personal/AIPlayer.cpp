@@ -254,7 +254,6 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundida
 
     ParchisBros hijos = estado.getChildren();
 
-    // Si no hay hijos, pasa turno (movimiento legal)
     if (hijos.begin() == hijos.end()) {
         if (profundidad == 0) {
             c_piece = estado.getCurrentColor();
@@ -264,42 +263,67 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador, int profundida
         return heuristic->evaluate(estado, jugador);
     }
 
-    if (estado.getCurrentPlayerId() == jugador) { // Max
+    // Guardar hijos junto con info de movimiento y valor heurístico
+    struct NodoOrdenado {
+        Parchis hijo;
+        float valor;
+        color c;
+        int id;
+        int dado;
+    };
+
+    std::vector<NodoOrdenado> hijos_ordenados;
+    for (auto it = hijos.begin(); it != hijos.end(); ++it) {
+        float val = heuristic->evaluate(*it, jugador);
+        hijos_ordenados.push_back({*it, val, it.getMovedColor(), it.getMovedPieceId(), it.getMovedDiceValue()});
+    }
+
+    if (estado.getCurrentPlayerId() == jugador) {
+        std::sort(hijos_ordenados.begin(), hijos_ordenados.end(),
+                  [](const NodoOrdenado& a, const NodoOrdenado& b) { return a.valor > b.valor; });
+
         float mejor_valor = menosinf;
-        for (auto it = hijos.begin(); it != hijos.end(); ++it) {
+        for (const auto& nodo : hijos_ordenados) {
             color dummy_c; int dummy_id; int dummy_dice;
-            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max,
+            float child_val = Poda_AlfaBeta(nodo.hijo, jugador, profundidad + 1, profundidad_max,
                                             dummy_c, dummy_id, dummy_dice, alpha, beta, heuristic);
+
             if (child_val > mejor_valor) {
                 mejor_valor = child_val;
                 if (profundidad == 0) {
-                    c_piece = it.getMovedColor();
-                    id_piece = it.getMovedPieceId();
-                    dice = it.getMovedDiceValue();
+                    c_piece = nodo.c;
+                    id_piece = nodo.id;
+                    dice = nodo.dado;
                 }
             }
+
             alpha = std::max(alpha, mejor_valor);
             if (beta <= alpha) break;
         }
         return mejor_valor;
+
     } else {
+        std::sort(hijos_ordenados.begin(), hijos_ordenados.end(),
+                  [](const NodoOrdenado& a, const NodoOrdenado& b) { return a.valor < b.valor; });
+
         float peor_valor = masinf;
-        for (auto it = hijos.begin(); it != hijos.end(); ++it) {
+        for (const auto& nodo : hijos_ordenados) {
             color dummy_c; int dummy_id; int dummy_dice;
-            float child_val = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max,
+            float child_val = Poda_AlfaBeta(nodo.hijo, jugador, profundidad + 1, profundidad_max,
                                             dummy_c, dummy_id, dummy_dice, alpha, beta, heuristic);
+
             if (child_val < peor_valor) {
                 peor_valor = child_val;
                 if (profundidad == 0) {
-                    c_piece = it.getMovedColor();
-                    id_piece = it.getMovedPieceId();
-                    dice = it.getMovedDiceValue();
+                    c_piece = nodo.c;
+                    id_piece = nodo.id;
+                    dice = nodo.dado;
                 }
             }
+
             beta = std::min(beta, peor_valor);
             if (beta <= alpha) break;
         }
         return peor_valor;
     }
 }
-
