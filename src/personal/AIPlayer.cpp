@@ -162,7 +162,6 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
             else if (box.type == home) val += PESO_CASA;           // CASA: PENALIZA FUERTE
             else val += PESO_DISTANCIA * estado.distanceToGoal(c, j); // AVANZA SIEMPRE
             if (estado.isSafePiece(c, j)) val += PESO_SEGURO;      // Un pequeño bonus si está a salvo
-            if (estado.getBoard().getPiece(c, j).get_box().type == kill) val += PESO_MUERTE; // Si me matan, penaliza fuerte
         }
     }
 
@@ -174,7 +173,6 @@ float ValoracionAvanzada::getHeuristic(const Parchis& estado, int jugador) const
             else if (box.type == home) val -= PESO_CASA;           // Bonus si el rival está en casa
             else val -= PESO_DISTANCIA * estado.distanceToGoal(c, j); // Penaliza que el rival avance
             if (estado.isSafePiece(c, j)) val -= PESO_SEGURO;      // Pequeño castigo si el rival está seguro
-            if (estado.getBoard().getPiece(c, j).get_box().type == kill) val -= PESO_MUERTE; // Bonus si matan rival
         }
     }
 
