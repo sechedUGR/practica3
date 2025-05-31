@@ -5,14 +5,12 @@
 #include "../../include/model/Player.h"
 #include "../../include/model/Heuristic.h"
 
-// --- Heurística básica ---
-class ValoracionTest: public Heuristic{
+class ValoracionTest: public Heuristic {
 protected:
    virtual float getHeuristic(const Parchis &estado, int jugador) const;
 };
 
-// --- Heurística avanzada para competir con los ninjas ---
-class ValoracionAvanzada: public Heuristic{
+class ValoracionAvanzada: public Heuristic {
 protected:
    virtual float getHeuristic(const Parchis &estado, int jugador) const;
 };
@@ -34,11 +32,8 @@ public:
    void thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice) const;
    void thinkMejorOpcion(color &c_piece, int &id_piece, int &dice) const;
 
-   // Poda Alfa-Beta básica y ordenada
-   float Poda_AlfaBeta(const Parchis &actual, int jugador, int profundidad, int profundidad_max,
-       color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const;
-
-   float Poda_AlfaBeta_Ordenada(const Parchis &actual, int jugador, int profundidad, int profundidad_max,
+   // Poda Alfa-Beta principal y ordenada
+   float Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, int profundidad_max,
        color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const;
 };
 
