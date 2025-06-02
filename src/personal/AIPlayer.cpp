@@ -1,17 +1,17 @@
 #include "AIPlayer.h"
-#include "../../include/model/Parchis.h"
+#include "../../include/model/Parchis.h"      // For full Parchis definition
 #include "../../include/model/NodeCounter.h"
-// #include "../../include/model/ParchisBros.h" // REMOVED as per previous fix
+// #include "../../include/model/ParchisBros.h" // REMOVED - should come from Parchis.h
 #include <vector>
-#include <algorithm>
-#include <cmath>
-#include <tuple>
-#include <iostream> // For debugging cout, if needed
+#include <algorithm> // For std::sort, std::max, std::min
+#include <cmath>     // For std::pow
+#include <tuple>     // For std::tuple in simple agents
+#include <iostream>  // For debugging, can be removed if not used
 
 // --- Constantes Globales ---
 const float masinf = 9999999999.0, menosinf = -9999999999.0;
 const float gana = masinf / 10.f, pierde = menosinf / 10.f;
-const int NUM_PIECES_PER_COLOR = 2;
+const int NUM_PIECES_PER_COLOR = 2; // As per Guion3.pdf
 const int PROFUNDIDAD_ALFABETA_DEFAULT = 7;
 const int PROFUNDIDAD_QUIESCENCE_DEFAULT = 3;
 
@@ -46,7 +46,7 @@ bool AIPlayer::move() {
 }
 
 void AIPlayer::think(color &c_piece, int &id_piece, int &dice_val) const {
-    float valor_alpha_beta = 0;
+    float valor_alpha_beta = 0.0f; // Initialize
     float alpha = menosinf;
     float beta = masinf;
     int jugador_actual_id = actual->getCurrentPlayerId();
@@ -56,7 +56,7 @@ void AIPlayer::think(color &c_piece, int &id_piece, int &dice_val) const {
 
     id_piece = SKIP_TURN;
     c_piece = actual->getCurrentColor();
-    dice_val = 0; // Default for SKIP_TURN, Poda_AlfaBeta should fill if a move is found
+    dice_val = 0;
 
     switch (id) {
         case 0:
@@ -75,19 +75,18 @@ void AIPlayer::think(color &c_piece, int &id_piece, int &dice_val) const {
             thinkAleatorio(c_piece, id_piece, dice_val);
             break;
     }
-    if (id_piece == SKIP_TURN) { // Ensure color is correct if skipping
+    if (id_piece == SKIP_TURN) {
         c_piece = actual->getCurrentColor();
     }
+    // To satisfy the compiler about valor_alpha_beta being used, though its direct value isn't critical here
+    // as c_piece, id_piece, dice_val are output parameters.
+    (void)valor_alpha_beta;
 }
 
-// --- AGENTES SIMPLES ---
+// --- AGENTES SIMPLES (Corrected getAvailableSpecialDices calls) ---
 void AIPlayer::thinkAleatorio(color &c_piece, int &id_piece, int &dice_val) const {
     int player = actual->getCurrentPlayerId();
     std::vector<int> current_dices = actual->getAvailableNormalDices(player);
-    // REMOVED: Call to getAvailableSpecialDices
-    // if (current_dices.empty()) {
-    //     current_dices = actual->getAvailableSpecialDices(player);
-    // }
 
     if (current_dices.empty()) {
         id_piece = SKIP_TURN;
@@ -95,7 +94,6 @@ void AIPlayer::thinkAleatorio(color &c_piece, int &id_piece, int &dice_val) cons
         dice_val = 0;
         return;
     }
-    // It's possible rand() % 0 if current_dices.size() is 0, guard against it (already done by previous check)
     dice_val = current_dices[rand() % current_dices.size()];
 
     std::vector<std::tuple<color, int>> current_pieces = actual->getAvailablePieces(player, dice_val);
@@ -113,10 +111,6 @@ void AIPlayer::thinkAleatorio(color &c_piece, int &id_piece, int &dice_val) cons
 void AIPlayer::thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice_val) const {
     int player = actual->getCurrentPlayerId();
     std::vector<int> current_dices = actual->getAvailableNormalDices(player);
-    // REMOVED: Call to getAvailableSpecialDices
-    //  if (current_dices.empty()) {
-    //     current_dices = actual->getAvailableSpecialDices(player);
-    // }
 
     if (current_dices.empty()) {
         id_piece = SKIP_TURN;
@@ -153,7 +147,7 @@ void AIPlayer::thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice_
 }
 
 void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice_val) const {
-    ParchisBros hijos = actual->getChildren(); // ParchisBros comes from Parchis.h
+    ParchisBros hijos = actual->getChildren();
     bool found_move = false;
     float mejor_valor_heuristico = menosinf;
     int current_player_id = actual->getCurrentPlayerId();
@@ -168,7 +162,7 @@ void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice_val) co
             for (int i = 0; i < NUM_PIECES_PER_COLOR; ++i) {
                 valor -= estado_hijo.distanceToGoal(c_eval, i);
                 if(estado_hijo.isSafePiece(c_eval, i)) valor += 5;
-                Box piece_box = estado_hijo.getBoard().getPiece(c_eval, i).get_box(); // Get box once
+                Box piece_box = estado_hijo.getBoard().getPiece(c_eval, i).get_box();
                 if(piece_box.type == goal) valor += 50;
                 else if(piece_box.type == home) valor -= 100;
             }
@@ -179,8 +173,8 @@ void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice_val) co
     ParchisBros::Iterator best_it = hijos.end();
 
     for (ParchisBros::Iterator it = hijos.begin(); it != hijos.end(); ++it) {
-        Parchis hijo = *it;
-        float valor_actual = evalua_simple(hijo, current_player_id);
+        Parchis hijo_actual = *it; // Use a different name to avoid confusion with NodoOrdenado::hijo
+        float valor_actual = evalua_simple(hijo_actual, current_player_id);
 
         if (valor_actual > mejor_valor_heuristico) {
             mejor_valor_heuristico = valor_actual;
@@ -189,7 +183,7 @@ void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice_val) co
         }
     }
 
-    if (found_move) {
+    if (found_move && best_it != hijos.end()) { // Ensure best_it is valid
         c_piece = best_it.getMovedColor();
         id_piece = best_it.getMovedPieceId();
         dice_val = best_it.getMovedDiceValue();
@@ -220,8 +214,8 @@ float ValoracionTest::getHeuristic(const Parchis& estado, int jugador_evaluando_
     std::vector<color> mis_colores = estado.getPlayerColors(jugador_evaluando_para);
     for (color c : mis_colores) {
         for (int i = 0; i < NUM_PIECES_PER_COLOR; ++i) {
+            const Box& piece_box = estado.getBoard().getPiece(c, i).get_box(); // Use const&
             if (estado.isSafePiece(c, i)) puntuacion_jugador += 10;
-            Box piece_box = estado.getBoard().getPiece(c, i).get_box();
             if (piece_box.type == goal) puntuacion_jugador += 100;
             else if (piece_box.type == home) puntuacion_jugador -= 50;
             puntuacion_jugador -= estado.distanceToGoal(c, i) * 0.1f;
@@ -231,8 +225,8 @@ float ValoracionTest::getHeuristic(const Parchis& estado, int jugador_evaluando_
     std::vector<color> colores_oponente = estado.getPlayerColors(oponente);
     for (color c : colores_oponente) {
         for (int i = 0; i < NUM_PIECES_PER_COLOR; ++i) {
+            const Box& piece_box = estado.getBoard().getPiece(c, i).get_box(); // Use const&
             if (estado.isSafePiece(c, i)) puntuacion_oponente += 10;
-            Box piece_box = estado.getBoard().getPiece(c, i).get_box();
             if (piece_box.type == goal) puntuacion_oponente += 100;
             else if (piece_box.type == home) puntuacion_oponente -= 50;
             puntuacion_oponente -= estado.distanceToGoal(c, i) * 0.1f;
@@ -259,21 +253,19 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador_evalua
     const float SAFE_SQUARE_BONUS = 70.0f;
     const float NEAR_GOAL_THRESHOLD = 8.0f;
     const float NEAR_GOAL_BONUS = 120.0f;
-    const float JUST_OUT_DIST_THRESHOLD = 65.0f; // If dist_to_goal is >= this, piece is "far"/just out
+    const float JUST_OUT_DIST_THRESHOLD = 65.0f;
     const float JUST_OUT_BONUS = 50.0f;
     const float TWO_AT_HOME_PENALTY_COLOR = -700.0f;
-    const float BARRIER_BONUS_DEFENSIVE = 25.0f; // Increased slightly
+    const float BARRIER_BONUS_DEFENSIVE = 25.0f;
 
-
-    // Evaluar mis piezas (jugador_evaluando_para)
     std::vector<color> mis_colores = estado.getPlayerColors(jugador_evaluando_para);
     for (color c : mis_colores) {
         int en_casa_color = 0;
-        Box box_piece0 = estado.getBoard().getPiece(c, 0).get_box();
-        Box box_piece1 = estado.getBoard().getPiece(c, 1).get_box();
+        const Box& box_piece0 = estado.getBoard().getPiece(c, 0).get_box(); // Use const&
+        const Box& box_piece1 = estado.getBoard().getPiece(c, 1).get_box(); // Use const&
 
         for (int j = 0; j < NUM_PIECES_PER_COLOR; ++j) {
-            Box box = estado.getBoard().getPiece(c, j).get_box(); // Use the specific piece's box
+            const Box& box = estado.getBoard().getPiece(c, j).get_box();
             int dist = estado.distanceToGoal(c, j);
 
             if (box.type == goal) {
@@ -285,8 +277,6 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador_evalua
                 score_jugador += std::pow(std::max(0.0f, MAX_DIST_APPROX - dist), DISTANCE_POWER_EXP);
                 if (estado.isSafePiece(c, j)) score_jugador += SAFE_SQUARE_BONUS;
                 if (dist <= NEAR_GOAL_THRESHOLD && dist > 0) score_jugador += NEAR_GOAL_BONUS;
-
-                // REPLACED: distanceFromHome with approximation using distanceToGoal
                 if (dist >= JUST_OUT_DIST_THRESHOLD) {
                      score_jugador += JUST_OUT_BONUS;
                 }
@@ -294,22 +284,19 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador_evalua
         }
         if (en_casa_color == NUM_PIECES_PER_COLOR) score_jugador += TWO_AT_HOME_PENALTY_COLOR;
 
-        // REPLACED: arePiecesBarrier with manual check
+        // Corrected Barrier Check: Removed .color_sq
         if (box_piece0.type != home && box_piece0.type != goal &&
             box_piece0.type == box_piece1.type &&
-            box_piece0.num == box_piece1.num &&
-            box_piece0.color_sq == box_piece1.color_sq) {
+            box_piece0.num == box_piece1.num) { // Pieces are on the same, non-home, non-goal square
             score_jugador += BARRIER_BONUS_DEFENSIVE;
         }
     }
 
-    // Evaluar piezas del oponente
     std::vector<color> colores_oponente = estado.getPlayerColors(oponente);
     for (color c : colores_oponente) {
         int en_casa_color = 0;
-        // Not checking opponent barriers for now, can be added if needed
         for (int j = 0; j < NUM_PIECES_PER_COLOR; ++j) {
-            Box box = estado.getBoard().getPiece(c, j).get_box();
+            const Box& box = estado.getBoard().getPiece(c, j).get_box();
             int dist = estado.distanceToGoal(c, j);
 
             if (box.type == goal) {
@@ -321,7 +308,6 @@ float ValoracionAvanzada::getHeuristic(const Parchis &estado, int jugador_evalua
                 score_oponente += std::pow(std::max(0.0f, MAX_DIST_APPROX - dist), DISTANCE_POWER_EXP);
                 if (estado.isSafePiece(c, j)) score_oponente += SAFE_SQUARE_BONUS;
                 if (dist <= NEAR_GOAL_THRESHOLD && dist > 0) score_oponente += NEAR_GOAL_BONUS;
-                // REPLACED: distanceFromHome
                  if (dist >= JUST_OUT_DIST_THRESHOLD) {
                      score_oponente += JUST_OUT_BONUS;
                 }
@@ -351,7 +337,7 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador_maximizer, int 
     }
 
     std::vector<NodoOrdenado> hijos_ordenados;
-    ParchisBros hijos_iterable = estado.getChildren(); // ParchisBros from Parchis.h
+    ParchisBros hijos_iterable = estado.getChildren();
     for (ParchisBros::Iterator it = hijos_iterable.begin(); it != hijos_iterable.end(); ++it) {
         if (NodeCounter::isLimitReached()) break;
         Parchis hijo_actual = *it;
@@ -367,30 +353,25 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador_maximizer, int 
         return heuristic->evaluate(estado, jugador_maximizer);
     }
 
+    // Initialize best move for root from the first available child
+    if (profundidad == 0) { // Only at the root
+        c_piece_out = hijos_ordenados.front().c;
+        id_piece_out = hijos_ordenados.front().id_ficha;
+        dice_out = hijos_ordenados.front().dado_usado;
+    }
+
     if (estado.getCurrentPlayerId() == jugador_maximizer) {
         std::sort(hijos_ordenados.begin(), hijos_ordenados.end(), comparaNodosParaMax);
     } else {
         std::sort(hijos_ordenados.begin(), hijos_ordenados.end(), comparaNodosParaMin);
     }
 
-    // Initialize best move for root from the first available child, in case all children are bad or limit is hit early.
-    // This ensures c_piece_out, id_piece_out, dice_out are set to *something* if moves exist.
-    if (profundidad == 0 && !hijos_ordenados.empty()) {
-        c_piece_out = hijos_ordenados.front().c;
-        id_piece_out = hijos_ordenados.front().id_ficha;
-        dice_out = hijos_ordenados.front().dado_usado;
-    }
-
 
     if (estado.getCurrentPlayerId() == jugador_maximizer) { // MAX Node
         float mejor_valor_nodo = menosinf;
-        // Best move variables are c_piece_out, id_piece_out, dice_out (passed by ref)
-
         for (const auto& nodo_hijo_ordenado : hijos_ordenados) {
             if (NodeCounter::isLimitReached()) {
-                 // c_piece_out etc. would have been set by the best move found so far at root,
-                 // or by the initialization from the first child above.
-                return mejor_valor_nodo;
+                return mejor_valor_nodo; // Return best found so far for MAX
             }
 
             color c_dummy; int id_dummy; int dice_dummy;
@@ -416,14 +397,14 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador_maximizer, int 
         float peor_valor_nodo = masinf;
         for (const auto& nodo_hijo_ordenado : hijos_ordenados) {
             if (NodeCounter::isLimitReached()) {
-                return heuristic->evaluate(estado, jugador_maximizer);
+                return peor_valor_nodo; // Return best found so far for MIN (which is worst for MAX)
             }
 
             color c_dummy; int id_dummy; int dice_dummy;
             float valor_hijo = Poda_AlfaBeta(nodo_hijo_ordenado.hijo, jugador_maximizer, profundidad + 1, profundidad_max,
                                              c_dummy, id_dummy, dice_dummy, alpha, beta, heuristic, quiescence_enabled);
 
-            peor_valor_nodo = std::min(peor_valor_nodo, valor_hijo); // No c_piece_out update here.
+            peor_valor_nodo = std::min(peor_valor_nodo, valor_hijo);
             beta = std::min(beta, peor_valor_nodo);
             if (beta <= alpha) {
                 break;
@@ -436,44 +417,38 @@ float AIPlayer::Poda_AlfaBeta(const Parchis &estado, int jugador_maximizer, int 
 float AIPlayer::QuiescenceSearch(const Parchis &estado, int jugador_maximizer, int profundidad_quiescence, int profundidad_max_quiescence,
                                   float alpha, float beta, Heuristic* heuristic) const {
 
-    if (NodeCounter::isLimitReached() || profundidad_quiescence >= profundidad_max_quiescence || estado.gameOver()) { // Use >= for depth check
+    if (NodeCounter::isLimitReached() || profundidad_quiescence >= profundidad_max_quiescence || estado.gameOver()) {
         return heuristic->evaluate(estado, jugador_maximizer);
     }
 
     float stand_pat_score = heuristic->evaluate(estado, jugador_maximizer);
 
-    if (estado.getCurrentPlayerId() == jugador_maximizer) { // MAX Node
+    if (estado.getCurrentPlayerId() == jugador_maximizer) {
         alpha = std::max(alpha, stand_pat_score);
-        if (stand_pat_score >= beta) { // Beta cut-off
+        if (stand_pat_score >= beta) {
             return stand_pat_score;
         }
     }
-    else { // MIN Node
+    else {
         beta = std::min(beta, stand_pat_score);
-        if (stand_pat_score <= alpha) { // Alpha cut-off
+        if (stand_pat_score <= alpha) {
             return stand_pat_score;
         }
     }
 
     std::vector<NodoOrdenado> tactical_moves;
-    ParchisBros todos_hijos = estado.getChildren(); // ParchisBros from Parchis.h
+    ParchisBros todos_hijos = estado.getChildren();
     for (ParchisBros::Iterator it = todos_hijos.begin(); it != todos_hijos.end(); ++it) {
         if (NodeCounter::isLimitReached()) break;
-        Parchis hijo = *it;
+        Parchis hijo_actual = *it; // Renamed to avoid conflict
         bool es_tactico = false;
-        if (hijo.isEatingMove()) es_tactico = true;
-        if (hijo.isGoalMove()) es_tactico = true;
-        // Add more tactical conditions if needed (e.g., escaping capture, critical barrier moves)
+        if (hijo_actual.isEatingMove()) es_tactico = true;
+        if (hijo_actual.isGoalMove()) es_tactico = true;
 
         if (es_tactico) {
-            tactical_moves.push_back({hijo, heuristic->evaluate(hijo, jugador_maximizer), it.getMovedColor(), it.getMovedPieceId(), it.getMovedDiceValue()});
+            tactical_moves.push_back({hijo_actual, heuristic->evaluate(hijo_actual, jugador_maximizer), it.getMovedColor(), it.getMovedPieceId(), it.getMovedDiceValue()});
         }
     }
-
-    // If no tactical moves, return the stand_pat_score, unless it's the first call (depth 0)
-    // to ensure at least one level of normal search happens before quiescence decides it's quiet.
-    // The condition `profundidad_quiescence > 0` was in prev. version, let's see.
-    // If tactical_moves is empty here, the loops below won't run, and stand_pat_score (updated by alpha/beta) will be returned.
 
     if (estado.getCurrentPlayerId() == jugador_maximizer) {
         std::sort(tactical_moves.begin(), tactical_moves.end(), comparaNodosParaMax);
