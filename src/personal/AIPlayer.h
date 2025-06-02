@@ -38,7 +38,7 @@ public:
    void thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice) const;
    void thinkMejorOpcion(color &c_piece, int &id_piece, int &dice) const;
 
-   // Poda Alfa-Beta principal y ordenada
+   // Poda Alfa-Beta principal y ordenada (signature from your 3/6 version)
    float Poda_AlfaBeta(const Parchis &estado, int jugador_maximizer, int profundidad, int profundidad_max,
        color &c_piece, int &id_piece, int &dice, float alpha, float beta, Heuristic *heuristic) const;
 };
